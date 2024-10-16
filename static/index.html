@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Problem Solver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        select, input, button {
+            padding: 10px;
+            font-size: 16px;
+        }
+        input {
+            flex-grow: 1;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .results {
+            display: flex;
+            gap: 20px;
+        }
+        .column {
+            flex: 1;
+        }
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .chat-input input {
+            flex-grow: 1;
+        }
+        #claudeResult, #gpt4Result {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            min-height: 200px;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+        #claudeResult ol, #gpt4Result ol {
+            padding-left: 20px;
+        }
+        #claudeResult li, #gpt4Result li {
+            margin-bottom: 10px;
+        }
+        .loader-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .loader {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: white;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .result-container {
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-response {
+            background-color: #e6f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Math Problem Solver</h1>
+        <div class="input-group">
+            <select id="problemType">
+                <option value="derivative">Derivative</option>
+                <option value="integral">Integral</option>
+                <option value="limit">Limit</option>
+                <option value="solve">Solve</option>
+            </select>
+            <input type="text" id="expression" placeholder="Enter mathematical expression">
+            <button onclick="solveProblem()" id="solveButton">Solve</button>
+        </div>
+        <div class="results">
+            <div class="column">
+                <h2>Claude AI</h2>
+                <div class="chat-input">
+                    <input type="text" id="claudeChat" placeholder="Ask for clarification">
+                    <button onclick="chat('claude')">Ask Claude</button>
+                </div>
+                <div class="result-container" id="claudeResultContainer"></div>
+            </div>
+            <div class="column">
+                <h2>GPT-4</h2>
+                <div class="chat-input">
+                    <input type="text" id="gpt4Chat" placeholder="Ask for clarification">
+                    <button onclick="chat('gpt4')">Ask GPT-4</button>
+                </div>
+                <div class="result-container" id="gpt4ResultContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loader-container" id="loaderContainer">
+        <div class="loader"></div>
+        <div class="loading-text">Processing, please wait...</div>
+    </div>
+
+    <script>
+        function showLoading() {
+            document.getElementById('loaderContainer').style.display = 'flex';
+            document.getElementById('solveButton').disabled = true;
+        }
+
+        function hideLoading() {
+            document.getElementById('loaderContainer').style.display = 'none';
+            document.getElementById('solveButton').disabled = false;
+        }
+
+        async function solveProblem() {
+            const problemType = document.getElementById('problemType').value;
+            const expression = document.getElementById('expression').value;
+
+            showLoading();
+
+            try {
+                const response = await fetch('/api/solve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ problemType, expression })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('claudeResultContainer').innerHTML = `<div id="claudeResult">${data.claude_result}</div>`;
+                    document.getElementById('gpt4ResultContainer').innerHTML = `<div id="gpt4Result">${data.gpt4_result}</div>`;
+                } else {
+                    alert(data.error || 'An error occurred. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function chat(model) {
+            const message = document.getElementById(`${model}Chat`).value;
+            const context = document.getElementById(`${model}Result`).innerHTML;
+
+            showLoading();
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model, message, context })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    const resultContainer = document.getElementById(`${model}ResultContainer`);
+                    const chatResponse = document.createElement('div');
+                    chatResponse.className = 'chat-response';
+                    chatResponse.innerHTML = `<strong>Follow-up:</strong><br>${data.result}`;
+                    resultContainer.insertBefore(chatResponse, resultContainer.firstChild);
+                } else {
+                    alert(data.error || 'An error occurred. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            } finally {
+                hideLoading();
+            }
+        }
+    </script>
+</body>
+</html>
