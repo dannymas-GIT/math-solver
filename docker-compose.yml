@@ -5,7 +5,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY
+      - ANTHROPIC_API_KEY
+      - FLASK_ENV=production
+      - GUNICORN_CMD_ARGS="--timeout 120"
     volumes:
       - .:/app

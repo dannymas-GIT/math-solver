@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Jace's Reference Dashboard{% endblock %}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        .header {
+            background-color: #1a5f7a;
+            text-align: center;
+            padding: 20px 0;
+        }
+        .header img {
+            max-width: 100%;
+            height: 200px;
+        }
+        .nav {
+            background-color: #159895;
+            padding: 10px 0;
+            text-align: center;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-weight: bold;
+        }
+        .nav a:hover {
+            background-color: #1a5f7a;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        select, input, button {
+            padding: 10px;
+            font-size: 16px;
+        }
+        input {
+            flex-grow: 1;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .results {
+            display: flex;
+            gap: 20px;
+        }
+        .column {
+            flex: 1;
+        }
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .chat-input input {
+            flex-grow: 1;
+        }
+        #claudeResult, #gpt4Result {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            min-height: 200px;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+        #claudeResult ol, #gpt4Result ol {
+            padding-left: 20px;
+        }
+        #claudeResult li, #gpt4Result li {
+            margin-bottom: 10px;
+        }
+        .chat-response {
+            background-color: #e6f3ff;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+        .loader-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        .loader-text {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    {% block additional_styles %}{% endblock %}
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='header.png') }}" alt="Jace's Reference Dashboard" onerror="this.onerror=null; this.src=''; this.alt='Error loading header image';">
+    </div>
+    <div class="nav">
+        <a href="/science">Science</a>
+        <a href="/math">Math</a>
+        <a href="/law">Law</a>
+        <a href="/business">Business</a>
+    </div>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+    <div id="loading">
+        <div class="loader-container">
+            <div class="loader"></div>
+            <div class="loader-text">Retrieving Your Information</div>
+        </div>
+    </div>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

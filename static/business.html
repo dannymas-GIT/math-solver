@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Math Problem Solver{% endblock %}
+{% block title %}Business Assistant{% endblock %}
 
 {% block content %}
-    <h1>Math Problem Solver</h1>
+    <h1>Business Assistant</h1>
     <div class="input-group">
-        <select id="problemType">
-            <option value="derivative">Derivative</option>
-            <option value="integral">Integral</option>
-            <option value="limit">Limit</option>
-            <option value="solve">Solve</option>
+        <select id="businessType">
+            <option value="strategy">Strategy</option>
+            <option value="finance">Finance</option>
+            <option value="marketing">Marketing</option>
+            <option value="operations">Operations</option>
         </select>
-        <input type="text" id="expression" placeholder="Enter mathematical expression">
-        <button onclick="solveProblem()" id="solveButton">Solve</button>
+        <input type="text" id="businessQuestion" placeholder="Enter your business question">
+        <button onclick="askBusiness()" id="askButton">Ask</button>
     </div>
     <div class="results">
         <div class="column">
@@ -36,19 +36,9 @@
 
 {% block scripts %}
 <script>
-    function showLoading() {
-        document.getElementById('loaderContainer').style.display = 'flex';
-        document.getElementById('solveButton').disabled = true;
-    }
-
-    function hideLoading() {
-        document.getElementById('loaderContainer').style.display = 'none';
-        document.getElementById('solveButton').disabled = false;
-    }
-
-    async function solveProblem() {
-        const problemType = document.getElementById('problemType').value;
-        const expression = document.getElementById('expression').value;
+    async function askBusiness() {
+        const businessType = document.getElementById('businessType').value;
+        const question = document.getElementById('businessQuestion').value;
 
         showLoading();
 
@@ -56,13 +46,13 @@
             const response = await fetch('/api/solve', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ problemType, expression })
+                body: JSON.stringify({ problemType: 'business', question: question })
             });
 
             const data = await response.json();
             if (response.ok) {
-                document.getElementById('claudeResult').innerHTML = `<div id="claudeResult">${data.claude_result}</div>`;
-                document.getElementById('gpt4Result').innerHTML = `<div id="gpt4Result">${data.gpt4_result}</div>`;
+                document.getElementById('claudeResult').innerHTML = data.claude_result;
+                document.getElementById('gpt4Result').innerHTML = data.gpt4_result;
             } else {
                 alert(data.error || 'An error occurred. Please try again.');
             }
@@ -84,16 +74,17 @@
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model, message, context })
+                body: JSON.stringify({ model, message, context, problemType: 'business' })
             });
 
             const data = await response.json();
             if (response.ok) {
-                const resultContainer = document.getElementById(`${model}ResultContainer`);
-                const chatResponse = document.createElement('div');
-                chatResponse.className = 'chat-response';
-                chatResponse.innerHTML = `<strong>Follow-up:</strong><br>${data.result}`;
-                resultContainer.insertBefore(chatResponse, resultContainer.firstChild);
+                const chatDiv = document.createElement('div');
+                chatDiv.className = 'chat-response';
+                chatDiv.innerHTML = `<p><strong>You:</strong> ${message}</p><p><strong>AI:</strong> ${data.result}</p>`;
+                const resultDiv = document.getElementById(`${model}Result`);
+                resultDiv.insertBefore(chatDiv, resultDiv.firstChild);
+                document.getElementById(`${model}Chat`).value = '';
             } else {
                 alert(data.error || 'An error occurred. Please try again.');
             }
@@ -104,5 +95,24 @@
             hideLoading();
         }
     }
+
+    function showLoading() {
+        document.getElementById('loading').style.display = 'block';
+    }
+
+    function hideLoading() {
+        document.getElementById('loading').style.display = 'none';
+    }
 </script>
+{% endblock %}
+
+{% block additional_styles %}
+<style>
+    .chat-response {
+        background-color: #e6f3ff;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+</style>
 {% endblock %}
